@@ -40,6 +40,10 @@ print(data.isnull().sum())
 
 significant_features = []
 
+data_pivot = data.pivot_table(values='Churn', index='Tenure', aggfunc=np.mean)
+data_pivot.plot.bar()
+plt.show()
+
 max_tenure = data['Tenure'].max()
 min_tenure = data['Tenure'].min()
 # Assuming that here Tenure is in months - input file doesn't mention the unit.
@@ -400,10 +404,6 @@ from sklearn.tree import export_text
 print(significant_features)
 print(len(significant_features))
 
-#from google.colab import drive
-#drive.mount('/content/gdrive')
-#data = pd.read_excel("/content/gdrive/My Drive/churn_data.xlsx", sheet_name = 1)
-#data = data.drop('CustomerID', axis=1)
 
 print(data.shape)
 
