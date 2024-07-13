@@ -28,6 +28,22 @@ print(data.describe())
 # dropping CustomerID, since we don't need this for subsequence analysis
 data = data.drop('CustomerID', axis=1)
 
+
+# Combine 'Phone' and 'Mobile Phone' in 'PreferredLoginDevice'
+data['PreferredLoginDevice'] = data['PreferredLoginDevice'].replace({'Phone': 'Mobile Phone'})
+
+
+# Combine 'CC' and 'Credit Card' in 'PreferredPaymentMethod'
+data['PreferredPaymentMode'] = data['PreferredPaymentMode'].replace({'CC': 'Credit Card'})
+
+# Combine 'COD' and 'Cash on Delivery' in 'PreferredPaymentMethod'
+data['PreferredPaymentMode'] = data['PreferredPaymentMode'].replace({'COD': 'Cash on Delivery'})
+
+# Combine 'Mobile' and 'Mobile Phone' in 'PreferredOrderCat'
+data['PreferedOrderCat'] = data['PreferedOrderCat'].replace({'Mobile': 'Mobile Phone'})
+
+
+
 for column in data:
   plt.hist(data[column], bins=10)
   plt.title(column)
@@ -68,9 +84,6 @@ if p_value < 0.05:
 else:
     print(f"Feature '{feature}' does not have a statistically significant association with 'Churn' (p-value: {p_value:.4f}).")
 
-## It is not clear what is the distinction between Phone and MobilePhone here.
-## Customer who use phone to login to application Churned More than customers who used Computer or MobilePhone. 20% or more customers who used Computer or Phone Churned. Engage with customers
-## who are using these devices (Phone/Computer)
 data_pivot = data.pivot_table(values='Churn', index='PreferredLoginDevice', aggfunc=np.mean)
 data_pivot.plot.bar()
 plt.show()
@@ -400,10 +413,8 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import export_text
 
-
 print(significant_features)
 print(len(significant_features))
-
 
 print(data.shape)
 
@@ -425,6 +436,7 @@ print(data.shape)
 from sklearn.impute import SimpleImputer
 
 categorical_features = ['PreferredLoginDevice', 'PreferredPaymentMode', 'Gender', 'PreferedOrderCat', 'MaritalStatus']
+
 significant_categorical_features = []
 
 for feature in categorical_features:
@@ -442,7 +454,16 @@ for feature in significant_categorical_features:
   print(label_encode_name_mapping)
 
 
-# Create an imputer to handle missing values
+# Create an imputer to handle missing values. Note that the columns which have missing values are all numerical, so imputing by mean should be fine:
+# Tenure                         264
+# WarehouseToHome                251
+# HourSpendOnApp                 255
+# OrderAmountHikeFromlastYear    265
+# CouponUsed                     256
+# OrderCount                     258
+# DaySinceLastOrder              307
+# Among the above column, HourSpendOnApp and CouponUsed are already dropped from the dataframe since their association isn't statistically significant with churn
+
 imputer = SimpleImputer(strategy="mean")
 
 # Impute missing values in the data
@@ -454,7 +475,8 @@ print(X.shape)
 # Split data into train and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-model = DecisionTreeClassifier(criterion='gini', max_depth = 9)
+model = DecisionTreeClassifier(criterion='gini', max_depth = 7)
+
 model.fit(X_train, y_train)
 
 # Evaluate the model
